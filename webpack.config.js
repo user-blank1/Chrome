@@ -3,6 +3,7 @@ const path = require("path");
 const HtmlPlugin = require("html-webpack-plugin");
 module.exports = {
     mode: "development",
+    devtool: "cheap-module-source-map",
     entry: {
         popup: path.resolve("src/popup/popup.tsx"),
     },
@@ -28,6 +29,7 @@ module.exports = {
         new HtmlPlugin({
             title: "ReactJS Boilerplate",
             filename: "popup.html",
+            chunks: ["popup"],
         }),
     ],
 
@@ -35,6 +37,6 @@ module.exports = {
         extensions: [".tsx", ".ts", ".js"],
     },
     output: {
-        filename: "index.js",
+        filename: "[name].js",
     },
 };
