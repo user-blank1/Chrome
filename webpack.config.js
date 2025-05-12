@@ -1,35 +1,33 @@
 const CopyPlugin = require("copy-webpack-plugin");
 const path = require("path");
 const HtmlPlugin = require("html-webpack-plugin");
-const autoprefixer = require("autoprefixer");
-
-const tailwindcss = require("tailwindcss");
 
 module.exports = {
     mode: "development",
     devtool: "cheap-module-source-map",
     entry: {
-        popup: path.resolve("src/popup/popup.tsx"),
+        popup: path.resolve("src/popup/popup.jsx"),
+        options: path.resolve("src/options/options.jsx"),
+        background: path.resolve("src/background/background.js"),
     },
     module: {
         rules: [
             {
-                use: "ts-loader",
-                test: /\.tsx?$/,
+                test: /\.jsx?$/, // handle both .js and .jsx
                 exclude: /node_modules/,
+                use: "babel-loader",
             },
             {
-                use: [
-                    "style-loader",
-                    "css-loader",
-                    {
-                        loader: "postcss-loader",
-                    },
-                ],
                 test: /\.css$/i,
+                use: ["style-loader", "css-loader"],
+            },
+            {
+                test: /\.(png|svg|jpg|jpeg|gif)$/i,
+                type: "asset/resource",
             },
         ],
     },
+
     plugins: [
         new CopyPlugin({
             patterns: [
@@ -38,19 +36,34 @@ module.exports = {
                     from: path.resolve("src/static/icon.png"),
                     to: path.resolve(__dirname, "dist"),
                 },
+                {
+                    from: path.resolve("src/static/banner.png"),
+                    to: path.resolve(__dirname, "dist"),
+                },
             ],
         }),
-        new HtmlPlugin({
-            title: "ReactJS Boilerplate",
-            filename: "popup.html",
-            chunks: ["popup"],
-        }),
+        ...getHtmlPlugins(["popup", "options"]),
     ],
+    optimization: {
+        splitChunks: {
+            chunks: "all",
+        },
+    },
 
     resolve: {
-        extensions: [".tsx", ".ts", ".js"],
+        extensions: [".js", ".jsx"],
     },
     output: {
         filename: "[name].js",
     },
 };
+function getHtmlPlugins(chunks) {
+    return chunks.map(
+        (chunk) =>
+            new HtmlPlugin({
+                title: `${chunk} Page`,
+                filename: `${chunk}.html`,
+                chunks: [chunk],
+            })
+    );
+}
